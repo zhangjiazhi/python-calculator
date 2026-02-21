@@ -9,6 +9,9 @@ Provides REPL loop with expression evaluation and command handling.
 from calculator.parser import ExpressionParser
 from calculator.history import HistoryManager
 
+# Maximum input length (same as parser limit)
+MAX_INPUT_LENGTH = 1000
+
 
 class CLI:
     """Command-line interface for the calculator."""
@@ -122,6 +125,12 @@ class CLI:
         Args:
             expression: The expression string to evaluate
         """
+        # Check input length for user-friendly error message
+        if len(expression) > MAX_INPUT_LENGTH:
+            print(f"Error: Expression too long ({len(expression)} characters). "
+                  f"Maximum allowed: {MAX_INPUT_LENGTH}")
+            return
+
         try:
             result = self.parser.parse(expression)
 

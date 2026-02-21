@@ -86,3 +86,21 @@ class TestBasicCalculator:
         # Test with float that causes overflow to infinity
         with pytest.raises(ValueError, match="overflow"):
             BasicCalculator.power(10.0, 10000)
+
+    def test_power_complex_number_rejection(self):
+        """Test that negative base with fractional exponent is rejected."""
+        with pytest.raises(ValueError, match="complex number"):
+            BasicCalculator.power(-1, 0.5)
+
+        with pytest.raises(ValueError, match="complex number"):
+            BasicCalculator.power(-4, 0.5)
+
+        with pytest.raises(ValueError, match="complex number"):
+            BasicCalculator.power(-2, 1.5)
+
+    def test_power_negative_base_integer_exponent(self):
+        """Test negative base with integer exponent still works."""
+        # These should work fine (no complex numbers)
+        assert BasicCalculator.power(-2, 2) == 4
+        assert BasicCalculator.power(-2, 3) == -8
+        assert BasicCalculator.power(-1, 2) == 1

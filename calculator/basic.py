@@ -6,12 +6,16 @@ Basic arithmetic operations module.
 Provides fundamental mathematical operations with input validation.
 """
 
+from typing import Union
+
+Number = Union[int, float]
+
 
 class BasicCalculator:
     """Static methods for basic arithmetic operations."""
 
     @staticmethod
-    def add(a, b):
+    def add(a: Number, b: Number) -> Number:
         """
         Add two numbers.
 
@@ -25,7 +29,7 @@ class BasicCalculator:
         return a + b
 
     @staticmethod
-    def subtract(a, b):
+    def subtract(a: Number, b: Number) -> Number:
         """
         Subtract b from a.
 
@@ -39,7 +43,7 @@ class BasicCalculator:
         return a - b
 
     @staticmethod
-    def multiply(a, b):
+    def multiply(a: Number, b: Number) -> Number:
         """
         Multiply two numbers.
 
@@ -53,7 +57,7 @@ class BasicCalculator:
         return a * b
 
     @staticmethod
-    def divide(a, b):
+    def divide(a: Number, b: Number) -> float:
         """
         Divide a by b.
 
@@ -72,7 +76,7 @@ class BasicCalculator:
         return a / b
 
     @staticmethod
-    def modulo(a, b):
+    def modulo(a: Number, b: Number) -> Number:
         """
         Calculate a modulo b.
 
@@ -91,7 +95,7 @@ class BasicCalculator:
         return a % b
 
     @staticmethod
-    def power(a, b):
+    def power(a: Number, b: Number) -> Number:
         """
         Raise a to the power of b.
 
@@ -103,10 +107,24 @@ class BasicCalculator:
             a raised to the power b
 
         Raises:
-            ValueError: If result would overflow
+            ValueError: If result would overflow or produce complex number
         """
+        # Check for operations that would produce complex numbers
+        if a < 0 and isinstance(b, float) and not b.is_integer():
+            raise ValueError(
+                f"Cannot raise negative number to fractional power: "
+                f"{a} ** {b} would produce complex number"
+            )
+
         try:
             result = a ** b
+
+            # Check if result is complex (additional safety check)
+            if isinstance(result, complex):
+                raise ValueError(
+                    f"Operation produced complex number: {a} ** {b}"
+                )
+
             # Check for overflow
             if isinstance(result, float) and (result == float('inf') or result == float('-inf')):
                 raise ValueError("Result overflow: number too large")
