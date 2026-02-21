@@ -82,6 +82,21 @@ class TestTokenize:
         with pytest.raises(ValueError, match="Invalid character"):
             ExpressionParser.tokenize("2 + abc")
 
+    def test_tokenize_multiple_decimal_points(self):
+        """Test tokenizing with multiple decimal points."""
+        with pytest.raises(ValueError, match="multiple decimal points"):
+            ExpressionParser.tokenize("1.2.3")
+
+    def test_tokenize_standalone_decimal_point(self):
+        """Test tokenizing standalone decimal point."""
+        with pytest.raises(ValueError, match="standalone decimal point"):
+            ExpressionParser.tokenize(".")
+
+    def test_tokenize_decimal_point_in_expression(self):
+        """Test decimal point error in expression."""
+        with pytest.raises(ValueError, match="standalone decimal point"):
+            ExpressionParser.tokenize("1 + .")
+
 
 class TestInfixToPostfix:
     """Test suite for infix to postfix conversion."""
@@ -258,3 +273,14 @@ class TestParse:
         """Test invalid expression error."""
         with pytest.raises(ValueError):
             ExpressionParser.parse("2 + + 3")
+
+    def test_expression_too_long(self):
+        """Test expression length limit."""
+        long_expr = "1+" * 600  # Creates an expression > 1000 characters
+        with pytest.raises(ValueError, match="Expression too long"):
+            ExpressionParser.parse(long_expr)
+
+    def test_multiple_decimal_points_in_parse(self):
+        """Test multiple decimal points error in full parse."""
+        with pytest.raises(ValueError, match="multiple decimal points"):
+            ExpressionParser.parse("1.2.3 + 5")
