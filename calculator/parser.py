@@ -7,7 +7,13 @@ Converts infix notation to postfix and evaluates mathematical expressions.
 """
 
 from enum import Enum
+from typing import List, Union
 from .basic import BasicCalculator
+
+# Maximum allowed expression length to prevent DoS attacks
+MAX_EXPRESSION_LENGTH = 1000
+
+Number = Union[int, float]
 
 
 class TokenType(Enum):
@@ -21,7 +27,7 @@ class TokenType(Enum):
 class Token:
     """Represents a token in the expression."""
 
-    def __init__(self, token_type, value):
+    def __init__(self, token_type: TokenType, value: Union[Number, str]):
         """
         Initialize a token.
 
@@ -29,10 +35,10 @@ class Token:
             token_type: TokenType enum value
             value: The actual value (number or operator string)
         """
-        self.type = token_type
-        self.value = value
+        self.type: TokenType = token_type
+        self.value: Union[Number, str] = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Token({self.type}, {self.value})"
 
 
@@ -50,7 +56,7 @@ class ExpressionParser:
     }
 
     @staticmethod
-    def tokenize(expression):
+    def tokenize(expression: str) -> List[Token]:
         """
         Convert expression string to list of tokens.
 
@@ -63,7 +69,7 @@ class ExpressionParser:
         Raises:
             ValueError: If expression contains invalid characters
         """
-        tokens = []
+        tokens: List[Token] = []
         i = 0
         expression = expression.replace(' ', '')  # Remove whitespace
 
@@ -73,14 +79,25 @@ class ExpressionParser:
             # Handle numbers (including decimals and negatives)
             if char.isdigit() or char == '.':
                 num_str = ''
+                decimal_count = 0
+
                 while i < len(expression) and (expression[i].isdigit() or expression[i] == '.'):
+                    if expression[i] == '.':
+                        decimal_count += 1
+                        if decimal_count > 1:
+                            raise ValueError(f"Invalid number format: multiple decimal points in number")
                     num_str += expression[i]
                     i += 1
+
+                # Validate not a standalone decimal point
+                if num_str == '.':
+                    raise ValueError("Invalid number: standalone decimal point")
+
                 try:
                     value = float(num_str) if '.' in num_str else int(num_str)
                     tokens.append(Token(TokenType.NUMBER, value))
                 except ValueError:
-                    raise ValueError(f"Invalid number: {num_str}")
+                    raise ValueError(f"Invalid number format: {num_str}")
                 continue
 
             # Handle operators
@@ -144,7 +161,7 @@ class ExpressionParser:
         return tokens
 
     @staticmethod
-    def infix_to_postfix(tokens):
+    def infix_to_postfix(tokens: List[Token]) -> List[Token]:
         """
         Convert infix token list to postfix using Shunting Yard algorithm.
 
@@ -157,8 +174,8 @@ class ExpressionParser:
         Raises:
             ValueError: If parentheses are mismatched
         """
-        output = []
-        operator_stack = []
+        output: List[Token] = []
+        operator_stack: List[Token] = []
 
         for token in tokens:
             if token.type == TokenType.NUMBER:
@@ -210,7 +227,7 @@ class ExpressionParser:
         return output
 
     @staticmethod
-    def evaluate_postfix(postfix_tokens):
+    def evaluate_postfix(postfix_tokens: List[Token]) -> Number:
         """
         Evaluate postfix expression.
 
@@ -223,7 +240,7 @@ class ExpressionParser:
         Raises:
             ValueError: If expression is invalid or operations fail
         """
-        stack = []
+        stack: List[Number] = []
 
         for token in postfix_tokens:
             if token.type == TokenType.NUMBER:
@@ -263,7 +280,7 @@ class ExpressionParser:
         return stack[0]
 
     @staticmethod
-    def parse(expression):
+    def parse(expression: str) -> Number:
         """
         Parse and evaluate a mathematical expression.
 
@@ -278,6 +295,13 @@ class ExpressionParser:
         """
         if not expression or not expression.strip():
             raise ValueError("Empty expression")
+
+        # Check expression length to prevent DoS attacks
+        if len(expression) > MAX_EXPRESSION_LENGTH:
+            raise ValueError(
+                f"Expression too long: {len(expression)} characters "
+                f"(maximum {MAX_EXPRESSION_LENGTH})"
+            )
 
         tokens = ExpressionParser.tokenize(expression)
         if not tokens:
